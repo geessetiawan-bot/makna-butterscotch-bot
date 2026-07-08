@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Makna Butterscotch — Rasa Baru</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --toffee-950:#2A180C;
+    --toffee-900:#3A2213;
+    --toffee-800:#4E2F19;
+    --gold-500:#D4922A;
+    --gold-400:#E8A94F;
+    --ember-500:#D9662E;
+    --cream-100:#F2E4C9;
+    --cream-50:#F8EFDD;
+    --ink-900:#1C120A;
+    --line:rgba(242,228,201,0.14);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    background:var(--toffee-950);
+    color:var(--cream-100);
+    font-family:'Plus Jakarta Sans',sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .display{font-family:'Fraunces',serif;}
+
+  /* ---------- Age Gate ---------- */
+  #ageGate{
+    position:fixed;inset:0;z-index:100;
+    background:radial-gradient(120% 100% at 50% 0%, #402512 0%, var(--ink-900) 75%);
+    display:flex;align-items:center;justify-content:center;
+    padding:24px;
+  }
+  .gate-card{
+    max-width:380px;width:100%;
+    background:var(--toffee-900);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:32px 28px;
+    text-align:center;
+  }
+  .gate-badge{
+    display:inline-block;
+    font-family:'Fraunces',serif;font-weight:700;font-size:15px;
+    color:var(--ink-900);background:var(--gold-500);
+    padding:6px 14px;border-radius:999px;margin-bottom:20px;
+    letter-spacing:0.02em;
+  }
+  .gate-card h2{
+    font-family:'Fraunces',serif;font-weight:600;font-size:22px;
+    line-height:1.3;margin-bottom:12px;color:var(--cream-50);
+  }
+  .gate-card p{
+    font-size:14px;line-height:1.6;color:var(--cream-100);opacity:0.8;
+    margin-bottom:24px;
+  }
+  .gate-buttons{display:flex;gap:10px;}
+  .btn{
+    flex:1;border:none;border-radius:12px;padding:13px 16px;
+    font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:14px;
+    cursor:pointer;transition:transform .15s ease, opacity .15s ease;
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn-yes{background:var(--gold-500);color:var(--ink-900);}
+  .btn-no{background:transparent;color:var(--cream-100);border:1px solid var(--line);}
+  #exitScreen{
+    display:none;position:fixed;inset:0;z-index:101;background:var(--ink-900);
+    align-items:center;justify-content:center;text-align:center;padding:24px;
+    color:var(--cream-100);font-size:14px;line-height:1.6;
+  }
+
+  /* ---------- Hero ---------- */
+  #app{display:none;}
+  .hero{
+    position:relative;overflow:hidden;
+    padding:44px 24px 76px;
+    background:linear-gradient(180deg, var(--toffee-900) 0%, var(--toffee-950) 100%);
+  }
+  .eyebrow{
+    font-size:12px;letter-spacing:0.14em;text-transform:uppercase;
+    color:var(--gold-400);font-weight:600;margin-bottom:14px;
+  }
+  .hero h1{
+    font-family:'Fraunces',serif;font-weight:600;
+    font-size:clamp(34px,9vw,48px);line-height:1.05;
+    color:var(--cream-50);margin-bottom:14px;
+  }
+  .hero h1 em{
+    font-style:normal;color:var(--gold-500);
+  }
+  .hero p{
+    font-size:15px;line-height:1.6;color:var(--cream-100);opacity:0.85;
+    max-width:34ch;
+  }
+  .age-tag{
+    display:inline-flex;align-items:center;gap:6px;
+    margin-top:20px;font-size:12px;font-weight:600;
+    color:var(--cream-100);opacity:0.75;
+    border:1px solid var(--line);padding:6px 12px;border-radius:999px;
+  }
+
+  /* drip signature element */
+  .drip{
+    position:absolute;left:0;right:0;bottom:-1px;height:64px;
+    display:block;
+  }
+
+  /* ---------- Map Section ---------- */
+  .section{padding:28px 20px 40px;background:var(--cream-50);color:var(--ink-900);}
+  .section-head{margin-bottom:18px;}
+  .section-head h2{
+    font-family:'Fraunces',serif;font-weight:600;font-size:22px;color:var(--toffee-950);
+  }
+  .section-head p{
+    font-size:13px;color:var(--toffee-800);opacity:0.75;margin-top:4px;
+  }
+  .locate-row{
+    display:flex;align-items:center;gap:8px;
+    font-size:12px;font-weight:600;color:var(--ember-500);
+    margin-bottom:14px;
+  }
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--ember-500);
+    box-shadow:0 0 0 4px rgba(217,102,46,0.18);}
+
+  .map-wrap{
+    position:relative;margin-bottom:18px;
+  }
+  #map{
+    height:clamp(340px, 60vh, 580px);
+    width:100%;border-radius:16px;
+    border:1px solid rgba(58,34,19,0.12);
+  }
+  .map-wrap:fullscreen{background:var(--ink-900);padding:0;}
+  .map-wrap:fullscreen #map,
+  .map-wrap:-webkit-full-screen #map{
+    height:100vh;width:100vw;border-radius:0;border:none;
+  }
+  .fs-btn{
+    position:absolute;top:12px;right:12px;z-index:500;
+    width:40px;height:40px;border-radius:10px;border:none;
+    background:rgba(28,18,10,0.72);color:var(--cream-50);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;backdrop-filter:blur(4px);
+    transition:transform .15s ease;
+  }
+  .fs-btn:active{transform:scale(0.92);}
+  @media (max-height:640px){
+    #map{height:clamp(300px, 52vh, 480px);}
+  }
+  .leaflet-popup-content-wrapper{
+    background:var(--toffee-900);color:var(--cream-100);border-radius:10px;
+  }
+  .leaflet-popup-content{font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;margin:10px 12px;}
+  .leaflet-popup-tip{background:var(--toffee-900);}
+
+  .outlet-list{display:flex;flex-direction:column;gap:10px;}
+  .outlet-card{
+    display:flex;justify-content:space-between;align-items:center;
+    background:#fff;border:1px solid rgba(58,34,19,0.10);
+    border-radius:14px;padding:14px 16px;
+  }
+  .outlet-name{font-weight:600;font-size:14px;color:var(--toffee-950);}
+  .outlet-meta{font-size:12px;color:var(--toffee-800);opacity:0.7;margin-top:2px;}
+  .outlet-dist{
+    font-family:'Fraunces',serif;font-weight:600;font-size:15px;
+    color:var(--ember-500);white-space:nowrap;padding-left:12px;
+  }
+  #geoStatus{
+    font-size:12px;color:var(--toffee-800);opacity:0.7;margin-bottom:12px;
+  }
+
+  /* ---------- Footer ---------- */
+  footer{
+    background:var(--ink-900);color:var(--cream-100);
+    padding:22px 20px 32px;
+  }
+  .warning{
+    font-size:11px;font-weight:700;letter-spacing:0.04em;
+    color:var(--gold-400);border:1px solid rgba(232,169,79,0.3);
+    border-radius:10px;padding:12px 14px;margin-bottom:16px;line-height:1.5;
+  }
+  .fine{font-size:11px;line-height:1.6;opacity:0.55;}
+
+  @media (prefers-reduced-motion: reduce){
+    .btn{transition:none;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== AGE GATE ===== -->
+<div id="ageGate">
+  <div class="gate-card">
+    <span class="gate-badge">MAKNA BUTTERSCOTCH</span>
+    <h2>Konten ini khusus untuk perokok dewasa</h2>
+    <p>Dengan melanjutkan, kamu mengonfirmasi bahwa usiamu 18 tahun ke atas dan kamu adalah perokok aktif.</p>
+    <div class="gate-buttons">
+      <button class="btn btn-no" onclick="exitSite()">Bukan Perokok</button>
+      <button class="btn btn-yes" onclick="enterSite()">Saya 18+, Lanjutkan</button>
+    </div>
+  </div>
+</div>
+
+<div id="exitScreen">
+  Halaman ini hanya ditujukan untuk perokok dewasa aktif.<br>Terima kasih.
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="app">
+
+  <section class="hero">
+    <p class="eyebrow">Rasa baru dari MAKNA</p>
+    <h1>Manis karamel,<br><em>gaya barumu</em>.</h1>
+    <p>Kamu baru aja coba Makna Butterscotch — varian rasa manis dari keluarga MAKNA, dibuat buat anak muda yang suka eksplor rasa baru.</p>
+    <span class="age-tag">🔞 Khusus perokok dewasa 18+</span>
+
+    <svg class="drip" viewBox="0 0 400 64" preserveAspectRatio="none">
+      <path d="M0,0 L400,0 L400,20 C370,20 360,64 330,64 C300,64 295,24 265,24 C235,24 232,50 205,50 C178,50 176,18 148,18 C120,18 118,44 90,44 C62,44 60,14 32,14 C16,14 8,18 0,20 Z" fill="#F8EFDD"/>
+    </svg>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>Outlet terdekat</h2>
+      <p>Sudah tersedia Makna Butterscotch di sekitar lokasimu</p>
+    </div>
+    <div class="locate-row"><span class="dot"></span> LOKASI KAMU SEKARANG</div>
+    <div class="map-wrap">
+      <div id="map"></div>
+      <button id="fullscreenBtn" class="fs-btn" aria-label="Perbesar peta ke layar penuh" onclick="toggleFullscreen()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+        </svg>
+      </button>
+    </div>
+    <div id="geoStatus">Mengambil lokasi kamu…</div>
+    <div class="outlet-list" id="outletList"></div>
+  </section>
+
+  <footer>
+    <div class="warning">⚠ PERINGATAN: MEROKOK MEMBUNUHMU</div>
+    <p class="fine">Materi ini ditampilkan sebagai bagian dari program sampling tertutup dan hanya dapat diakses oleh konsumen yang telah menerima sampel langsung di outlet. Sesuai PP 109/2012 &amp; PP 28/2024.<br><br>Data lokasi digunakan untuk validasi program sampling. © Makna Butterscotch.</p>
+  </footer>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+  function enterSite(){
+    document.getElementById('ageGate').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    initMap();
+  }
+  function exitSite(){
+    document.getElementById('ageGate').style.display = 'none';
+    document.getElementById('exitScreen').style.display = 'flex';
+  }
+
+  // ---- MOCK OUTLET DATA (ganti dengan hasil fetch Apps Script nanti) ----
+  // qr_id di URL nantinya menentukan outlet asal sampling untuk logging
+  const outlets = [
+    { name: "Warmindo Barokah",      area: "Tembalang",           lat: -7.0505, lng: 110.4415 },
+    { name: "Kopi Dorong Pak Din",   area: "Pleburan",            lat: -6.9952, lng: 110.4218 },
+    { name: "Angkringan Mas Joko",   area: "Sekaran, Gunungpati", lat: -7.0498, lng: 110.3958 },
+    { name: "Warmindo Sari Rasa",    area: "Tlogosari Kulon",     lat: -6.9841, lng: 110.4547 },
+    { name: "Kopi Kenangan Ngaliyan",area: "Ngaliyan",            lat: -6.9885, lng: 110.3622 },
+  ];
+
+  let map, userMarker;
+  const semarangCenter = [-7.005, 110.418];
+
+  function haversine(lat1, lon1, lat2, lon2){
+    const R = 6371;
+    const dLat = (lat2-lat1) * Math.PI/180;
+    const dLon = (lon2-lon1) * Math.PI/180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+
+  const goldIcon = L.divIcon({
+    className:'',
+    html:'<div style="width:14px;height:14px;border-radius:50%;background:#D4922A;border:2px solid #F8EFDD;box-shadow:0 0 0 3px rgba(212,146,42,0.3);"></div>',
+    iconSize:[14,14]
+  });
+  const userIcon = L.divIcon({
+    className:'',
+    html:'<div style="width:14px;height:14px;border-radius:50%;background:#D9662E;border:2px solid #F8EFDD;box-shadow:0 0 0 6px rgba(217,102,46,0.22);"></div>',
+    iconSize:[14,14]
+  });
+
+  function renderOutletList(userLat, userLng){
+    const list = document.getElementById('outletList');
+    const withDist = outlets.map(o => ({
+      ...o,
+      dist: (userLat!=null) ? haversine(userLat, userLng, o.lat, o.lng) : null
+    }));
+    if(userLat!=null) withDist.sort((a,b) => a.dist - b.dist);
+
+    list.innerHTML = withDist.map(o => `
+      <div class="outlet-card">
+        <div>
+          <div class="outlet-name">${o.name}</div>
+          <div class="outlet-meta">${o.area}</div>
+        </div>
+        <div class="outlet-dist">${o.dist!=null ? o.dist.toFixed(1)+' km' : '—'}</div>
+      </div>
+    `).join('');
+  }
+
+  function toggleFullscreen(){
+    const wrap = document.querySelector('.map-wrap');
+    const isFs = document.fullscreenElement || document.webkitFullscreenElement;
+    if(!isFs){
+      if(wrap.requestFullscreen) wrap.requestFullscreen();
+      else if(wrap.webkitRequestFullscreen) wrap.webkitRequestFullscreen();
+    } else {
+      if(document.exitFullscreen) document.exitFullscreen();
+      else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
+    }
+  }
+  function handleFsChange(){
+    const isFs = document.fullscreenElement || document.webkitFullscreenElement;
+    const btn = document.getElementById('fullscreenBtn');
+    btn.innerHTML = isFs
+      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v3a2 2 0 0 1-2 2H4m16 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M4 15h3a2 2 0 0 1 2 2v3"/></svg>'
+      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>';
+    setTimeout(() => { if(map) map.invalidateSize(); }, 200);
+  }
+  document.addEventListener('fullscreenchange', handleFsChange);
+  document.addEventListener('webkitfullscreenchange', handleFsChange);
+  window.addEventListener('resize', () => { if(map) map.invalidateSize(); });
+
+  function initMap(){
+    map = L.map('map', { zoomControl:false, attributionControl:false }).setView(semarangCenter, 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19 }).addTo(map);
+    L.control.zoom({ position:'bottomright' }).addTo(map);
+
+    outlets.forEach(o => {
+      L.marker([o.lat, o.lng], { icon: goldIcon }).addTo(map)
+        .bindPopup(`<b>${o.name}</b><br>${o.area}`);
+    });
+
+    renderOutletList(null, null);
+
+    const statusEl = document.getElementById('geoStatus');
+    if(navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(pos => {
+        const { latitude, longitude } = pos.coords;
+        statusEl.textContent = 'Lokasi kamu terdeteksi';
+        userMarker = L.marker([latitude, longitude], { icon: userIcon }).addTo(map)
+          .bindPopup('Lokasi kamu');
+        map.setView([latitude, longitude], 13);
+        renderOutletList(latitude, longitude);
+
+        // TODO: kirim { qr_id, lat: latitude, lng: longitude, timestamp } ke Apps Script Web App endpoint
+        // fetch(APPS_SCRIPT_URL, { method:'POST', body: JSON.stringify({...}) })
+      }, () => {
+        statusEl.textContent = 'Lokasi tidak dapat diakses — menampilkan semua outlet Semarang';
+      }, { timeout: 8000 });
+    } else {
+      statusEl.textContent = 'Perangkat tidak mendukung deteksi lokasi';
+    }
+  }
+</script>
+
+</body>
+</html>
